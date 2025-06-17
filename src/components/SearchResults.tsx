@@ -1,0 +1,64 @@
+
+import { User, MapPin, Calendar, Loader2 } from 'lucide-react';
+import { Student } from '../pages/Index';
+
+interface SearchResultsProps {
+  results: Student[];
+  loading: boolean;
+  onStudentClick: (student: Student) => void;
+  searchTerm: string;
+}
+
+export const SearchResults = ({ results, loading, onStudentClick, searchTerm }: SearchResultsProps) => {
+  if (!searchTerm.trim()) return null;
+
+  return (
+    <div className="bg-gray-800/90 backdrop-blur-sm rounded-xl p-6 border border-gray-600 shadow-2xl animate-fade-in">
+      <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+        <User className="text-green-400" />
+        Resultado Pesquisa
+      </h2>
+      <p className="text-gray-300 mb-6 text-sm md:text-base">
+        Para baixar seu certificado, clique no seu nome
+      </p>
+      
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 text-green-400 animate-spin" />
+          <span className="ml-2 text-white">Buscando certificados...</span>
+        </div>
+      ) : results.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-gray-400 text-lg">Nenhum certificado encontrado</p>
+          <p className="text-gray-500 text-sm mt-2">Verifique se digitou o nome corretamente</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {results.map((student, index) => (
+            <div
+              key={index}
+              onClick={() => onStudentClick(student)}
+              className="bg-gray-700/50 hover:bg-gradient-to-r hover:from-green-500/20 hover:to-orange-500/20 p-4 rounded-lg cursor-pointer transition-all duration-300 border border-gray-600 hover:border-green-400/50 group transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <h3 className="text-lg font-semibold text-white group-hover:text-green-300 transition-colors">
+                  {student.nome}
+                </h3>
+                <div className="flex flex-col md:flex-row gap-2 md:gap-4 text-sm text-gray-300">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4 text-orange-400" />
+                    <span>{student.local}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4 text-green-400" />
+                    <span>{student.dataConclusao}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};

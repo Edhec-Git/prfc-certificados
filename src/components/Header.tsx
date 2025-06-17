@@ -1,0 +1,40 @@
+
+interface HeaderProps {
+  logoUrl: string;
+  title: string;
+  subtitle: string;
+}
+
+export const Header = ({ logoUrl, title, subtitle }: HeaderProps) => {
+  return (
+    <div className="text-center">
+      <div className="flex justify-center mb-8">
+        <img 
+          src={logoUrl} 
+          alt="Academia de Líderes Logo" 
+          className="h-32 w-auto md:h-40 filter drop-shadow-2xl animate-fade-in"
+        />
+      </div>
+      
+      <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-wide animate-fade-in">
+        <span className="bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
+          {title.split(' - ')[0]}
+        </span>
+        {title.includes(' - ') && (
+          <>
+            <br />
+            <span className="text-orange-400 text-2xl md:text-4xl">
+              {title.split(' - ')[1]}
+            </span>
+          </>
+        )}
+      </h1>
+      
+      <p className="text-xl md:text-2xl text-orange-300 font-semibold tracking-wider animate-fade-in">
+        {subtitle}
+      </p>
+      
+      <div className="mt-6 w-24 h-1 bg-gradient-to-r from-green-400 to-orange-400 mx-auto rounded-full"></div>
+    </div>
+  );
+};
