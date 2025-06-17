@@ -2,16 +2,6 @@
 // Google Sheets configuration
 const SHEET_ID = '1BpEAQy_qrEqbU60zs0LNMUD9Aa0A0XLBaMLNmA6p6tk';
 const SHEET_NAME = 'Planilha1';
-const API_KEY = ''; // Will be empty for now, using public sheet access
-
-// Column mapping based on your sheet structure
-const COLUMN_MAPPING = {
-  nome: 'A',
-  local: 'B', 
-  dataConclusao: 'C',
-  certificadoUrl: 'D',
-  downloadUrl: 'E'
-};
 
 export interface Student {
   nome: string;
@@ -21,10 +11,34 @@ export interface Student {
   downloadUrl: string;
 }
 
-// Build the Google Sheets API URL
-const buildSheetsUrl = (range: string) => {
-  const baseUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!${range}`;
-  return API_KEY ? `${baseUrl}?key=${API_KEY}` : `${baseUrl}?alt=json`;
+// Build the Google Sheets CSV URL (public access)
+const buildSheetsCSVUrl = () => {
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+};
+
+// Parse CSV data
+const parseCSV = (csvText: string): string[][] => {
+  const lines = csvText.split('\n');
+  return lines.map(line => {
+    // Simple CSV parsing - handles basic cases
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  });
 };
 
 // Convert row data to Student object
@@ -43,13 +57,12 @@ const mapRowToStudent = (row: string[]): Student | null => {
   };
 };
 
-// Fetch all students from Google Sheets
+// Fetch all students from Google Sheets via CSV
 export const fetchAllStudents = async (): Promise<Student[]> => {
   try {
-    // Fetch a reasonable range - adjust as needed
-    const url = buildSheetsUrl('A2:E1000'); // Skip header row, get up to 1000 records
+    const url = buildSheetsCSVUrl();
     
-    console.log('Fetching data from:', url);
+    console.log('Fetching CSV data from:', url);
     
     const response = await fetch(url);
     
@@ -57,20 +70,17 @@ export const fetchAllStudents = async (): Promise<Student[]> => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const data = await response.json();
+    const csvText = await response.text();
+    console.log('Raw CSV response received, length:', csvText.length);
     
-    console.log('Raw Google Sheets response:', data);
+    const rows = parseCSV(csvText);
+    console.log('Parsed CSV rows:', rows.length);
     
-    // Handle both API key and public access response formats
-    const values = data.values || data.feed?.entry || [];
-    
-    if (!values || values.length === 0) {
-      console.log('No data found in sheet');
-      return [];
-    }
+    // Skip header row (first row) and filter empty rows
+    const dataRows = rows.slice(1).filter(row => row.length > 0 && row[0]);
     
     // Map rows to Student objects and filter out invalid entries
-    const students = values
+    const students = dataRows
       .map((row: string[]) => mapRowToStudent(row))
       .filter((student: Student | null): student is Student => student !== null);
     
