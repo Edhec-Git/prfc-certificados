@@ -1,15 +1,16 @@
 
-import { User, MapPin, Calendar, Loader2 } from 'lucide-react';
+import { User, MapPin, Calendar, Loader2, AlertCircle } from 'lucide-react';
 import { Student } from '../pages/Index';
 
 interface SearchResultsProps {
   results: Student[];
   loading: boolean;
+  error?: string | null;
   onStudentClick: (student: Student) => void;
   searchTerm: string;
 }
 
-export const SearchResults = ({ results, loading, onStudentClick, searchTerm }: SearchResultsProps) => {
+export const SearchResults = ({ results, loading, error, onStudentClick, searchTerm }: SearchResultsProps) => {
   if (!searchTerm.trim()) return null;
 
   return (
@@ -26,6 +27,14 @@ export const SearchResults = ({ results, loading, onStudentClick, searchTerm }: 
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 text-green-400 animate-spin" />
           <span className="ml-2 text-white">Buscando certificados...</span>
+        </div>
+      ) : error ? (
+        <div className="text-center py-8">
+          <div className="flex items-center justify-center mb-2">
+            <AlertCircle className="h-8 w-8 text-red-400" />
+          </div>
+          <p className="text-red-400 text-lg mb-2">Erro ao carregar dados</p>
+          <p className="text-gray-500 text-sm">{error}</p>
         </div>
       ) : results.length === 0 ? (
         <div className="text-center py-8">
