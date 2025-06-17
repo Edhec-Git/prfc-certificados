@@ -23,14 +23,14 @@ export const Header = ({ logoUrl, title, subtitle }: HeaderProps) => {
         {title.includes(' - ') && (
           <>
             <br />
-            <span className="text-orange-400 text-2xl md:text-4xl">
+            <span className="text-2xl md:text-4xl" style={{ color: '#DDDC00' }}>
               {title.split(' - ')[1]}
             </span>
           </>
         )}
       </h1>
       
-      <p className="text-xl md:text-2xl text-orange-300 font-semibold tracking-wider animate-fade-in">
+      <p className="text-xl md:text-2xl font-semibold tracking-wider animate-fade-in" style={{ color: '#DDDC00' }}>
         {subtitle}
       </p>
       
