@@ -9,6 +9,7 @@ export interface Student {
   dataConclusao: string;
   certificadoUrl: string;
   downloadUrl: string;
+  url_pdf_completo: string; // Nova propriedade para o link completo do PDF
 }
 
 /**
@@ -21,7 +22,8 @@ const mapRowToStudent = (row: any): Student => {
     local: row.local_treinamento || '',
     dataConclusao: formatToBrazilianDate(row.data_conclusao || ''),
     certificadoUrl: row.certificado_url || '',
-    downloadUrl: row.certificado_download_url || ''
+    downloadUrl: row.certificado_download_url || '',
+    url_pdf_completo: row.url_pdf_completo || row.certificado_url || '' // Nova propriedade
   };
 };
 

@@ -1,7 +1,7 @@
 
 import { X, Download } from 'lucide-react';
 import { Student } from '../pages/Index';
-import { PDFViewer } from './PDFViewer';
+import { PDFThumbnail } from './PDFThumbnail';
 
 interface CertificateModalProps {
   student: Student;
@@ -10,11 +10,13 @@ interface CertificateModalProps {
 
 /**
  * Modal para visualização e download de certificados
- * Usa o PDFViewer para exibir certificados de forma responsiva
+ * Usa o PDFThumbnail para exibir miniatura do certificado
  */
 export const CertificateModal = ({ student, onClose }: CertificateModalProps) => {
   const handleDownload = () => {
-    window.open(student.downloadUrl, '_blank');
+    // Usa url_pdf_completo se disponível, senão usa downloadUrl
+    const pdfUrl = student.url_pdf_completo || student.downloadUrl;
+    window.open(pdfUrl, '_blank');
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -44,9 +46,9 @@ export const CertificateModal = ({ student, onClose }: CertificateModalProps) =>
         
         <div className="p-6">
           <div className="mb-6">
-            <PDFViewer 
-              pdfUrl={student.certificadoUrl}
-              alt={`Certificado de ${student.nome}`}
+            <PDFThumbnail 
+              pdfUrl={student.url_pdf_completo || student.certificadoUrl}
+              alt={`Prévia do certificado de ${student.nome}`}
               className="shadow-lg"
             />
           </div>

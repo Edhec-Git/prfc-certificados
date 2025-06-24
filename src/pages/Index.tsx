@@ -19,6 +19,7 @@ export interface Student {
   dataConclusao: string;
   certificadoUrl: string;
   downloadUrl: string;
+  url_pdf_completo: string; // Nova propriedade para o link completo do PDF
 }
 
 /**
