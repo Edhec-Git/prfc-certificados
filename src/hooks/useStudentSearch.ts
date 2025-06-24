@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Student, searchStudents } from '../services/googleSheetsService';
+import { Student, searchStudents } from '../services/certificateService';
 
 export const useStudentSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
