@@ -9,15 +9,14 @@ interface CertificateModalProps {
 }
 
 /**
- * Modal para visualização e download de certificados
- * Implementa as especificações do PRD para Google Drive
+ * Modal responsivo e minimalista para visualização de certificados
+ * Adapta-se automaticamente ao tamanho do certificado sem espaços desnecessários
  */
 export const CertificateModal = ({ student, onClose }: CertificateModalProps) => {
   // Usa url_pdf_completo se disponível, senão usa certificadoUrl
   const certificadoUrl = student.url_pdf_completo || student.certificadoUrl;
   
   const handleDownload = () => {
-    // Gera URL de download conforme PRD
     const downloadUrl = getDownloadUrl(certificadoUrl);
     window.open(downloadUrl, '_blank');
   };
@@ -28,77 +27,145 @@ export const CertificateModal = ({ student, onClose }: CertificateModalProps) =>
     }
   };
 
-  // Gera URL para visualização conforme PRD
+  // Gera URL para visualização conforme PRD - sem toolbar para interface limpa
   const viewerUrl = urlViewer(certificadoUrl);
   const isDriveUrl = isGoogleDriveUrl(certificadoUrl);
 
   return (
     <div 
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in"
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in popup-overlay"
       onClick={handleBackdropClick}
     >
-      <div className="bg-gray-800 rounded-xl max-w-5xl w-full max-h-[95vh] overflow-hidden border border-gray-600 shadow-2xl animate-scale-in">
-        <div className="sticky top-0 bg-gray-800 border-b border-gray-600 p-4 flex justify-between items-center z-10">
-          <h3 className="text-xl font-semibold text-white">
-            Certificado - {student.nome}
+      <div className="popup-certificado relative animate-scale-in">
+        {/* Header minimalista - fixo no topo */}
+        <div className="absolute top-0 left-0 right-0 bg-black/80 backdrop-blur-sm p-3 flex justify-between items-center z-20 rounded-t-lg">
+          <h3 className="text-white font-medium text-sm md:text-base truncate pr-2">
+            {student.nome}
           </h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-400 hover:text-white"
+            className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white/80 hover:text-white flex-shrink-0"
             aria-label="Fechar modal"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </button>
         </div>
         
-        <div className="flex flex-col h-full">
-          {/* Visualizador de PDF conforme PRD */}
-          <div className="flex-1 p-4">
-            {viewerUrl ? (
-              <div className="w-full h-full min-h-[60vh] bg-white rounded-lg overflow-hidden shadow-lg">
-                <iframe
-                  src={viewerUrl}
-                  title={`Certificado de ${student.nome}`}
-                  className="w-full h-full min-h-[60vh] border-0"
-                  width="100%"
-                  height="600px"
-                  frameBorder="0"
-                  allowFullScreen
-                  loading="lazy"
-                />
-              </div>
-            ) : (
-              <div className="w-full h-64 bg-gray-700 rounded-lg flex items-center justify-center">
-                <p className="text-gray-400">PDF não disponível para visualização</p>
-              </div>
-            )}
-          </div>
-          
-          {/* Botão de Download conforme PRD */}
-          <div className="p-6 bg-gray-800 border-t border-gray-600">
-            <div className="text-center mb-4">
-              <button
-                onClick={handleDownload}
-                className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border border-green-400/20"
-                aria-label={`Baixar certificado de ${student.nome}`}
-              >
-                <Download className="h-6 w-6" />
-                CLIQUE AQUI PARA BAIXAR
-              </button>
+        {/* Visualizador de certificado - sem botões extras */}
+        <div className="certificate-viewer">
+          {viewerUrl ? (
+            <iframe
+              src={viewerUrl}
+              title={`Certificado de ${student.nome}`}
+              className="certificate-iframe"
+              frameBorder="0"
+              allowFullScreen
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-96 bg-gray-800 rounded-lg flex items-center justify-center">
+              <p className="text-gray-400 text-center p-4">
+                Certificado não disponível para visualização
+              </p>
             </div>
+          )}
+        </div>
+        
+        {/* Botão de Download minimalista - fixo na parte inferior */}
+        <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-sm p-4 rounded-b-lg">
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={handleDownload}
+              className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+              aria-label={`Baixar certificado de ${student.nome}`}
+            >
+              <Download className="h-4 w-4" />
+              BAIXAR CERTIFICADO
+            </button>
             
-            <div className="text-center text-gray-400 text-sm">
-              <p>Local: {student.local}</p>
-              <p>Data de Conclusão: {student.dataConclusao}</p>
-              {isDriveUrl && (
-                <p className="text-xs mt-2 text-gray-500">
-                  Certificado hospedado no Google Drive
-                </p>
-              )}
+            <div className="text-center text-white/70 text-xs">
+              <p>{student.local} • {student.dataConclusao}</p>
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .popup-certificado {
+          display: flex;
+          flex-direction: column;
+          background: #1a1a1a;
+          border-radius: 12px;
+          max-width: 90vw;
+          max-height: 85vh;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        .certificate-viewer {
+          width: 100%;
+          height: 100%;
+          display: flex;
+        }
+
+        .certificate-iframe {
+          width: 100%;
+          height: 70vh;
+          max-height: 70vh;
+          border: none;
+          background: white;
+        }
+
+        /* Responsividade para mobile */
+        @media (max-width: 768px) {
+          .popup-overlay {
+            padding: 0;
+          }
+          
+          .popup-certificado {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            margin: 0;
+          }
+          
+          .certificate-iframe {
+            width: 100vw !important;
+            height: calc(100vh - 120px) !important;
+            max-height: calc(100vh - 120px) !important;
+            border-radius: 0 !important;
+          }
+        }
+
+        /* Responsividade para tablets */
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .popup-certificado {
+            max-width: 95vw;
+            max-height: 90vh;
+          }
+          
+          .certificate-iframe {
+            height: 75vh;
+            max-height: 75vh;
+          }
+        }
+
+        /* Desktop */
+        @media (min-width: 1025px) {
+          .popup-certificado {
+            max-width: 85vw;
+            max-height: 85vh;
+          }
+          
+          .certificate-iframe {
+            height: 75vh;
+            max-height: 75vh;
+          }
+        }
+      `}</style>
     </div>
   );
 };
