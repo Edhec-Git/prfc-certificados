@@ -1,7 +1,6 @@
 
 import { X, Download } from 'lucide-react';
 import { Student } from '../pages/Index';
-import { PDFThumbnail } from './PDFThumbnail';
 
 interface CertificateModalProps {
   student: Student;
@@ -10,7 +9,7 @@ interface CertificateModalProps {
 
 /**
  * Modal para visualização e download de certificados
- * Usa o PDFThumbnail para exibir miniatura do certificado
+ * Exibe o PDF diretamente usando iframe com Google Docs Viewer
  */
 export const CertificateModal = ({ student, onClose }: CertificateModalProps) => {
   const handleDownload = () => {
@@ -25,13 +24,24 @@ export const CertificateModal = ({ student, onClose }: CertificateModalProps) =>
     }
   };
 
+  // Gera URL para visualização do PDF usando Google Docs Viewer
+  const getViewerUrl = (pdfUrl: string) => {
+    if (!pdfUrl) return '';
+    
+    // Se for link do Google Drive ou qualquer outra URL, usa o Google Docs Viewer
+    return `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+  };
+
+  const pdfUrl = student.url_pdf_completo || student.certificadoUrl;
+  const viewerUrl = getViewerUrl(pdfUrl);
+
   return (
     <div 
       className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in"
       onClick={handleBackdropClick}
     >
-      <div className="bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto border border-gray-600 shadow-2xl animate-scale-in">
-        <div className="sticky top-0 bg-gray-800 border-b border-gray-600 p-4 flex justify-between items-center">
+      <div className="bg-gray-800 rounded-xl max-w-5xl w-full max-h-[95vh] overflow-hidden border border-gray-600 shadow-2xl animate-scale-in">
+        <div className="sticky top-0 bg-gray-800 border-b border-gray-600 p-4 flex justify-between items-center z-10">
           <h3 className="text-xl font-semibold text-white">
             Certificado - {student.nome}
           </h3>
@@ -44,29 +54,43 @@ export const CertificateModal = ({ student, onClose }: CertificateModalProps) =>
           </button>
         </div>
         
-        <div className="p-6">
-          <div className="mb-6">
-            <PDFThumbnail 
-              pdfUrl={student.url_pdf_completo || student.certificadoUrl}
-              alt={`Prévia do certificado de ${student.nome}`}
-              className="shadow-lg"
-            />
+        <div className="flex flex-col h-full">
+          {/* Visualizador de PDF */}
+          <div className="flex-1 p-4">
+            {viewerUrl ? (
+              <div className="w-full h-full min-h-[60vh] bg-white rounded-lg overflow-hidden shadow-lg">
+                <iframe
+                  src={viewerUrl}
+                  title={`Certificado de ${student.nome}`}
+                  className="w-full h-full min-h-[60vh] border-0"
+                  loading="lazy"
+                  allow="autoplay"
+                />
+              </div>
+            ) : (
+              <div className="w-full h-64 bg-gray-700 rounded-lg flex items-center justify-center">
+                <p className="text-gray-400">PDF não disponível para visualização</p>
+              </div>
+            )}
           </div>
           
-          <div className="text-center">
-            <button
-              onClick={handleDownload}
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border border-green-400/20"
-              aria-label={`Baixar certificado de ${student.nome}`}
-            >
-              <Download className="h-6 w-6" />
-              CLIQUE AQUI PARA BAIXAR
-            </button>
-          </div>
-          
-          <div className="mt-6 text-center text-gray-400 text-sm">
-            <p>Local: {student.local}</p>
-            <p>Data de Conclusão: {student.dataConclusao}</p>
+          {/* Botão de Download e Informações */}
+          <div className="p-6 bg-gray-800 border-t border-gray-600">
+            <div className="text-center mb-4">
+              <button
+                onClick={handleDownload}
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border border-green-400/20"
+                aria-label={`Baixar certificado de ${student.nome}`}
+              >
+                <Download className="h-6 w-6" />
+                CLIQUE AQUI PARA BAIXAR
+              </button>
+            </div>
+            
+            <div className="text-center text-gray-400 text-sm">
+              <p>Local: {student.local}</p>
+              <p>Data de Conclusão: {student.dataConclusao}</p>
+            </div>
           </div>
         </div>
       </div>
