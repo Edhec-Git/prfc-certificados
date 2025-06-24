@@ -224,3 +224,8 @@
     padding-right: 1rem;
   }
 }
+
+.logo-highlight {
+  border-radius: 1rem;
+  box-shadow: 0 0 20px rgba(255, 221, 0, 0.8);
+}
