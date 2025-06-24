@@ -1,7 +1,7 @@
 
 import { supabase } from '../integrations/supabase/client';
 import { formatToBrazilianDate } from '../utils/dateUtils';
-import { matchesMultiWordSearch } from '../utils/searchUtils';
+import { normalizar } from '../utils/searchUtils';
 
 export interface Student {
   nome: string;
@@ -66,7 +66,7 @@ export const fetchAllStudents = async (): Promise<Student[]> => {
 };
 
 /**
- * Busca certificados por nome com correspondência sem acentos e busca inteligente
+ * Busca certificados por nome usando normalização sem acentos (conforme PRD)
  * @param searchTerm - Termo de busca
  * @returns Promise com array de estudantes encontrados
  */
@@ -78,11 +78,10 @@ export const searchStudents = async (searchTerm: string): Promise<Student[]> => 
   try {
     console.log(`Buscando certificados para: "${searchTerm}"`);
     
-    // Busca usando ilike para busca case-insensitive no PostgreSQL
+    // Busca todos os dados primeiro
     const { data, error } = await supabase
       .from('certificado_digital')
-      .select('*')
-      .ilike('nome_aluno', `%${searchTerm}%`);
+      .select('*');
     
     if (error) {
       console.error('Erro na busca do Supabase:', error);
@@ -95,17 +94,18 @@ export const searchStudents = async (searchTerm: string): Promise<Student[]> => 
     }
     
     // Mapeia linhas do banco para objetos Student
-    const results = data
+    const allStudents = data
       .map(mapRowToStudent)
       .filter(student => student.nome && student.nome.trim().length > 0);
     
-    // Aplica busca inteligente sem acentos localmente para melhor correspondência
-    const intelligentResults = results.filter(student => 
-      matchesMultiWordSearch(searchTerm, student.nome)
+    // Aplica busca usando normalização sem acentos conforme PRD
+    const normalizedSearch = normalizar(searchTerm);
+    const results = allStudents.filter(student => 
+      normalizar(student.nome).includes(normalizedSearch)
     );
     
-    console.log(`${intelligentResults.length} correspondências encontradas para "${searchTerm}"`);
-    return intelligentResults;
+    console.log(`${results.length} correspondências encontradas para "${searchTerm}"`);
+    return results;
     
   } catch (error) {
     console.error('Erro ao buscar certificados:', error);

@@ -4,15 +4,24 @@
  */
 
 /**
+ * Normaliza string removendo acentos e caracteres especiais (conforme PRD)
+ * @param str - String original
+ * @returns String normalizada sem acentos
+ */
+export const normalizar = (str: string): string => {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+};
+
+/**
  * Remove acentos e caracteres especiais de uma string
  * @param str - String original
  * @returns String sem acentos
  */
 export const removeAccents = (str: string): string => {
-  return str
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+  return normalizar(str);
 };
 
 /**
@@ -21,7 +30,7 @@ export const removeAccents = (str: string): string => {
  * @returns String normalizada para busca
  */
 export const normalizeForSearch = (str: string): string => {
-  return removeAccents(str.trim());
+  return normalizar(str.trim());
 };
 
 /**
@@ -31,8 +40,8 @@ export const normalizeForSearch = (str: string): string => {
  * @returns true se houver correspondência
  */
 export const matchesSearch = (searchTerm: string, targetText: string): boolean => {
-  const normalizedSearch = normalizeForSearch(searchTerm);
-  const normalizedTarget = normalizeForSearch(targetText);
+  const normalizedSearch = normalizar(searchTerm);
+  const normalizedTarget = normalizar(targetText);
   
   return normalizedTarget.includes(normalizedSearch);
 };
@@ -44,8 +53,8 @@ export const matchesSearch = (searchTerm: string, targetText: string): boolean =
  * @returns true se todas as palavras forem encontradas
  */
 export const matchesMultiWordSearch = (searchTerm: string, targetText: string): boolean => {
-  const searchWords = normalizeForSearch(searchTerm).split(' ').filter(word => word.length > 0);
-  const normalizedTarget = normalizeForSearch(targetText);
+  const searchWords = normalizar(searchTerm).split(' ').filter(word => word.length > 0);
+  const normalizedTarget = normalizar(targetText);
   
   return searchWords.every(word => normalizedTarget.includes(word));
 };
