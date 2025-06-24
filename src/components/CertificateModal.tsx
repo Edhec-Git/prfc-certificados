@@ -1,12 +1,17 @@
 
 import { X, Download } from 'lucide-react';
 import { Student } from '../pages/Index';
+import { PDFViewer } from './PDFViewer';
 
 interface CertificateModalProps {
   student: Student;
   onClose: () => void;
 }
 
+/**
+ * Modal para visualização e download de certificados
+ * Usa o PDFViewer para exibir certificados de forma responsiva
+ */
 export const CertificateModal = ({ student, onClose }: CertificateModalProps) => {
   const handleDownload = () => {
     window.open(student.downloadUrl, '_blank');
@@ -31,6 +36,7 @@ export const CertificateModal = ({ student, onClose }: CertificateModalProps) =>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-gray-400 hover:text-white"
+            aria-label="Fechar modal"
           >
             <X className="h-6 w-6" />
           </button>
@@ -38,19 +44,18 @@ export const CertificateModal = ({ student, onClose }: CertificateModalProps) =>
         
         <div className="p-6">
           <div className="mb-6">
-            <div className="bg-white rounded-lg p-4 shadow-lg">
-              <img
-                src={student.certificadoUrl}
-                alt={`Certificado de ${student.nome}`}
-                className="w-full h-auto rounded-lg"
-              />
-            </div>
+            <PDFViewer 
+              pdfUrl={student.certificadoUrl}
+              alt={`Certificado de ${student.nome}`}
+              className="shadow-lg"
+            />
           </div>
           
           <div className="text-center">
             <button
               onClick={handleDownload}
               className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border border-green-400/20"
+              aria-label={`Baixar certificado de ${student.nome}`}
             >
               <Download className="h-6 w-6" />
               CLIQUE AQUI PARA BAIXAR

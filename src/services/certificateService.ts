@@ -1,5 +1,7 @@
 
 import { supabase } from '../integrations/supabase/client';
+import { formatToBrazilianDate } from '../utils/dateUtils';
+import { matchesMultiWordSearch } from '../utils/searchUtils';
 
 export interface Student {
   nome: string;
@@ -9,103 +11,102 @@ export interface Student {
   downloadUrl: string;
 }
 
-// Convert database row to Student object
+/**
+ * Converte uma linha do banco de dados para um objeto Student
+ * Aplica formatação brasileira nas datas
+ */
 const mapRowToStudent = (row: any): Student => {
   return {
     nome: row.nome_aluno || '',
     local: row.local_treinamento || '',
-    dataConclusao: row.data_conclusao || '',
+    dataConclusao: formatToBrazilianDate(row.data_conclusao || ''),
     certificadoUrl: row.certificado_url || '',
     downloadUrl: row.certificado_download_url || ''
   };
 };
 
-// Fetch all certificates from Supabase
+/**
+ * Busca todos os certificados do Supabase
+ * @returns Promise com array de estudantes
+ */
 export const fetchAllStudents = async (): Promise<Student[]> => {
   try {
-    console.log('Fetching certificates from Supabase...');
+    console.log('Buscando certificados no Supabase...');
     
     const { data, error } = await supabase
       .from('certificado_digital')
       .select('*');
     
     if (error) {
-      console.error('Supabase error:', error);
-      throw new Error(`Failed to fetch certificates: ${error.message}`);
+      console.error('Erro no Supabase:', error);
+      throw new Error(`Falha ao buscar certificados: ${error.message}`);
     }
     
     if (!data) {
-      console.log('No data returned from Supabase');
+      console.log('Nenhum dado retornado do Supabase');
       return [];
     }
     
-    console.log(`Successfully loaded ${data.length} certificates`);
+    console.log(`${data.length} certificados carregados com sucesso`);
     
-    // Map database rows to Student objects and filter out invalid entries
+    // Mapeia linhas do banco para objetos Student e filtra entradas inválidas
     const students = data
       .map(mapRowToStudent)
       .filter(student => student.nome && student.nome.trim().length > 0);
     
-    console.log(`Mapped ${students.length} valid certificates`);
+    console.log(`${students.length} certificados válidos mapeados`);
     return students;
     
   } catch (error) {
-    console.error('Error fetching certificates:', error);
-    throw new Error('Failed to load certificate data. Please try again later.');
+    console.error('Erro ao buscar certificados:', error);
+    throw new Error('Falha ao carregar dados dos certificados. Tente novamente mais tarde.');
   }
 };
 
-// Search certificates by name with fuzzy matching
+/**
+ * Busca certificados por nome com correspondência sem acentos e busca inteligente
+ * @param searchTerm - Termo de busca
+ * @returns Promise com array de estudantes encontrados
+ */
 export const searchStudents = async (searchTerm: string): Promise<Student[]> => {
   if (!searchTerm.trim()) {
     return [];
   }
   
   try {
-    console.log(`Searching certificates for: "${searchTerm}"`);
+    console.log(`Buscando certificados para: "${searchTerm}"`);
     
-    const normalizedSearch = searchTerm.toLowerCase().trim();
-    
-    // Use ilike for case-insensitive search in PostgreSQL
+    // Busca usando ilike para busca case-insensitive no PostgreSQL
     const { data, error } = await supabase
       .from('certificado_digital')
       .select('*')
-      .ilike('nome_aluno', `%${normalizedSearch}%`);
+      .ilike('nome_aluno', `%${searchTerm}%`);
     
     if (error) {
-      console.error('Supabase search error:', error);
-      throw new Error(`Search failed: ${error.message}`);
+      console.error('Erro na busca do Supabase:', error);
+      throw new Error(`Busca falhou: ${error.message}`);
     }
     
     if (!data) {
-      console.log('No search results returned');
+      console.log('Nenhum resultado de busca retornado');
       return [];
     }
     
-    // Map database rows to Student objects
+    // Mapeia linhas do banco para objetos Student
     const results = data
       .map(mapRowToStudent)
       .filter(student => student.nome && student.nome.trim().length > 0);
     
-    // Additional fuzzy search logic for better matching
-    const searchParts = normalizedSearch.split(' ').filter(part => part.length > 0);
-    const fuzzyResults = results.filter(student => {
-      const normalizedName = student.nome.toLowerCase();
-      
-      // Exact match gets highest priority
-      if (normalizedName.includes(normalizedSearch)) {
-        return true;
-      }
-      
-      // Split search term and check if all parts are found
-      return searchParts.every(part => normalizedName.includes(part));
-    });
+    // Aplica busca inteligente sem acentos localmente para melhor correspondência
+    const intelligentResults = results.filter(student => 
+      matchesMultiWordSearch(searchTerm, student.nome)
+    );
     
-    console.log(`Found ${fuzzyResults.length} matches for "${searchTerm}"`);
-    return fuzzyResults;
+    console.log(`${intelligentResults.length} correspondências encontradas para "${searchTerm}"`);
+    return intelligentResults;
     
   } catch (error) {
-    console.error('Error searching certificates:', error);
+    console.error('Erro ao buscar certificados:', error);
     throw error;
   }
 };
